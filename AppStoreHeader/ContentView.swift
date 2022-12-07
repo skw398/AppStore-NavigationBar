@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    
-    @State private var getButtonReachedTheTop = false
+    @State private var isGetButtonOverNav = false
     
     var body: some View {
         NavigationView {
@@ -31,7 +30,7 @@ struct ContentView: View {
                                     getButton
                                         .background(GeometryReader { geo in
                                                 Color.clear.preference(
-                                                    key: getButtonMinXPreferenceKey.self,
+                                                    key: GetButtonMinXPreferenceKey.self,
                                                     value: geo.frame(in: .global).minY
                                                 )
                                             })
@@ -45,8 +44,8 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .opacity(getButtonReachedTheTop ? 0 : 1)
-                    .animation(.easeInOut(duration: 0.25), value: getButtonReachedTheTop)
+                    .opacity(isGetButtonOverNav ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.25), value: isGetButtonOverNav)
                     .padding(.horizontal)
                     
                     ForEach(0..<10) { _ in
@@ -55,8 +54,8 @@ struct ContentView: View {
                             .frame(height: 100)
                     }
                 }
-                .onPreferenceChange(getButtonMinXPreferenceKey.self) {
-                    getButtonReachedTheTop = $0 < scrollViewGeo.frame(in: .global).minY
+                .onPreferenceChange(GetButtonMinXPreferenceKey.self) {
+                    isGetButtonOverNav = $0 < scrollViewGeo.frame(in: .global).minY
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -71,13 +70,13 @@ struct ContentView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 30)
-                        .modifier(appearsByScrolling(shouldAppear: getButtonReachedTheTop))
+                        .modifier(ShowNavItemWithAnimation(isShowing: isGetButtonOverNav))
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {}) {
                         getButton
                     }
-                    .modifier(appearsByScrolling(shouldAppear: getButtonReachedTheTop))
+                    .modifier(ShowNavItemWithAnimation(isShowing: isGetButtonOverNav))
                 }
             }
         }
@@ -92,20 +91,20 @@ struct ContentView: View {
             .cornerRadius(15)
     }
     
-    private struct getButtonMinXPreferenceKey: PreferenceKey {
+    private struct GetButtonMinXPreferenceKey: PreferenceKey {
         static var defaultValue = CGFloat.zero
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
             value += nextValue()
         }
     }
     
-    private struct appearsByScrolling: ViewModifier {
-        let shouldAppear: Bool
+    private struct ShowNavItemWithAnimation: ViewModifier {
+        let isShowing: Bool
         func body(content: Content) -> some View {
             content
-                .opacity(shouldAppear ? 1 : 0)
-                .offset(y: shouldAppear ? 0 : 5)
-                .animation(.easeInOut(duration: 0.25), value: shouldAppear)
+                .opacity(isShowing ? 1 : 0)
+                .offset(y: isShowing ? 0 : 5)
+                .animation(.easeInOut(duration: 0.25), value: isShowing)
         }
     }
 }
